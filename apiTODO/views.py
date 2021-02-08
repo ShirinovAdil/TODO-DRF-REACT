@@ -18,8 +18,7 @@ class CategoryViewset(viewsets.ModelViewSet):
 
 class TaskViewset(viewsets.ModelViewSet):
     """ A viewset to handle Tasks """
-    
-    #queryset = Task.objects.all()
+
     serializer_class = serializers.TaskSerializer
     permission_classes = [IsAuthorOrReadOnly]
 

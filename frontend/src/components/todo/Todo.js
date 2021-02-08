@@ -5,7 +5,7 @@ import {Card, Button, CardTitle, CardFooter, CardText} from 'reactstrap';
 
 
 class Todo extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             isAuthenticated: this.props.isAuthenticated,
@@ -19,12 +19,19 @@ class Todo extends Component {
         }
     }
 
-    componentDidMount(){
+    preLoader = () => {
+        // Show text when not logged in
+        if (this.state.todoList.length <= 0) {
+            return <h3>You should login first...</h3>
+        }
+    }
+
+    componentDidMount() {
         this.refreshList();
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({ isAuthenticated: nextProps.isAuthenticated },()=>{
+        this.setState({isAuthenticated: nextProps.isAuthenticated}, () => {
             this.refreshList();
         });
     }
@@ -33,7 +40,7 @@ class Todo extends Component {
         // Refresh the todoList by retrieving todos from the api
         if (this.state.isAuthenticated) {
             axios
-                .get("http://localhost:8000/api/tasks/",
+                .get("http://localhost:8000/api/v1/todo/tasks/",
                     {
                         headers: {
                             'Content-Type': 'application/json',
@@ -43,7 +50,7 @@ class Todo extends Component {
                 )
                 .then((res) => this.setState({todoList: res.data}))
                 .catch((err) => console.log(err));
-        }else{
+        } else {
             this.setState({todoList: []});
         }
     };
@@ -56,7 +63,6 @@ class Todo extends Component {
         }
         return this.setState({viewCompleted: false});
     };
-
 
 
     renderTabList = () => {
@@ -81,34 +87,35 @@ class Todo extends Component {
             (item) => item.done === viewCompleted
         );
         return newItems.map((item) => (
-            <li key={item.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <Card body>
-                    <CardTitle tag="h5">
+                <li key={item.id} className="list-group-item d-flex justify-content-between align-items-center">
+                    <Card body>
+                        <CardTitle tag="h5">
                       <span className={`todo-title mr-2 ${this.state.viewCompleted ? "completed-todo" : ""}`}
                             title={item.title}>
                         {item.title}
                       </span>
-                    </CardTitle>
+                        </CardTitle>
 
-                    <CardText>
-                        {item.body}
-                    </CardText>
+                        <CardText>
+                            {item.body}
+                        </CardText>
 
-                    <span style={{marginBottom: "10px"}}>
-                      <button onClick={() => this.editItem(item)} className="btn btn-secondary mr-2"> {" "}Edit{" "}</button>
-                      <button onClick={() => this.handleDelete(item)} className="btn btn-danger">{" "}Delete{" "}</button>
+                        <span style={{marginBottom: "10px"}}>
+                      <button onClick={() => this.editItem(item)}
+                              className="btn btn-secondary mr-2"> {" "}Edit{" "}</button>
+                      <button onClick={() => this.handleDelete(item)}
+                              className="btn btn-danger">{" "}Delete{" "}</button>
                     </span>
 
-                    <CardFooter className="text-muted">By {item.author}</CardFooter>
-                </Card>
-            </li>
+                        <CardFooter className="text-muted">By {item.author}</CardFooter>
+                    </Card>
+                </li>
         ));
     };
 
     toggle = () => {
         this.setState({modal: !this.state.modal});
     };
-
 
 
     createItem = () => {
@@ -123,12 +130,12 @@ class Todo extends Component {
     handleDelete = (item) => {
         // Handle task deletion
         axios
-            .delete(`http://localhost:8000/api/tasks/${item.id}`, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': "Token " + localStorage.getItem('token'),
-                        }
-                    })
+            .delete(`http://localhost:8000/api/v1/todo/tasks/${item.id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Token " + localStorage.getItem('token'),
+                }
+            })
             .then((res) => this.refreshList());
     };
 
@@ -137,7 +144,7 @@ class Todo extends Component {
         this.toggle();
         if (item.id) {
             axios
-                .put(`http://localhost:8000/api/tasks/${item.id}/`, {
+                .put(`http://localhost:8000/api/v1/todo/tasks/${item.id}/`, {
                     title: item.title,
                     body: item.body,
                     category: "Home",
@@ -152,7 +159,7 @@ class Todo extends Component {
             return;
         }
         axios
-            .post("http://localhost:8000/api/tasks/", {
+            .post("http://localhost:8000/api/v1/todo/tasks/", {
                 title: item.title,
                 body: item.body,
                 category: "Home",
@@ -180,6 +187,7 @@ class Todo extends Component {
                             </div>
                             {this.renderTabList()}
                             <ul className="list-group list-group-flush">
+                                {this.preLoader()}
                                 {this.renderItems()}
                             </ul>
                         </div>
@@ -197,5 +205,5 @@ class Todo extends Component {
         );
     }
 }
- 
+
 export default Todo;
